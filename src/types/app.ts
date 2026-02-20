@@ -364,3 +364,41 @@ export interface StoreMetadata {
   version: string;
   releaseNotes?: string;
 }
+
+// ============================================================================
+// Web Platform Types
+// ============================================================================
+
+export type WebStack = 'nextjs' | 'fastapi' | 'react-express' | 'vue';
+
+export interface WebAppSpec {
+  name: string;
+  description: string;
+  stack: WebStack;
+  pages: string[];
+  components: string[];
+  apiEndpoints?: string[];
+  database?: {
+    tables: DatabaseTable[];
+  };
+  features: string[];
+}
+
+export interface DatabaseTable {
+  name: string;
+  fields: {
+    name: string;
+    type: string;
+    required: boolean;
+  }[];
+}
+
+export interface WebGenerationResult {
+  specification: WebAppSpec;
+  code: {
+    frontend?: string;
+    backend?: string;
+    config?: string;
+  };
+  files: string[];
+}

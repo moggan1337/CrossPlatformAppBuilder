@@ -2,6 +2,7 @@
   <img src="https://img.shields.io/badge/iOS-000000?style=for-the-badge&logo=ios&logoColor=white" alt="iOS">
   <img src="https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android">
   <img src="https://img.shields.io/badge/React_Native-61DAFB?style=for-the-badge&logo=react-native&logoColor=white" alt="React Native">
+  <img src="https://img.shields.io/badge/Web-FF6C37?style=for-the-badge&logo=webpack&logoColor=white" alt="Web">
   <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript">
   <img src="https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js">
   <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License">
@@ -9,7 +10,7 @@
 
 # 🤖 Cross-Platform App Builder
 
-AI-powered platform to generate **iOS, Android, and React Native apps** from natural language. Describe your app idea, and AI creates complete, production-ready code for all platforms at once.
+AI-powered platform to generate **iOS, Android, React Native, and Web apps** from natural language. Describe your app idea, and AI creates complete, production-ready code for all platforms at once.
 
 ---
 
@@ -29,16 +30,21 @@ AI-powered platform to generate **iOS, Android, and React Native apps** from nat
 |----------|--------|-------------|
 | **iOS** | SwiftUI + Xcode | Native Apple apps |
 | **Android** | Kotlin/Jetpack Compose | Native Android apps |
-| **React Native** | Expo | Cross-platform apps |
-| **Web** | React | PWA support |
+| **React Native** | Expo | Cross-platform mobile apps |
+| **Web** | Next.js / FastAPI / Vue | Full-stack web apps |
 
-### 📋 App Templates (40+)
-- **Productivity**: Todo, Notes, Calendar, Bookmarks
-- **Health**: Fitness, Meditation, Water, Weight Tracker
-- **Social**: Feed, Messaging, Dating
-- **E-commerce**: Store, Marketplace
-- **Food**: Delivery, Recipes
-- **Finance**: Expense, Crypto, Budget
+### 🌐 Web Technology Stacks
+| Stack | Framework | Description |
+|-------|-----------|-------------|
+| **Next.js** | Next.js 14 + Tailwind | Full-stack React apps |
+| **FastAPI** | FastAPI + Python | REST APIs |
+| **React + Express** | MERN Stack | MongoDB-based apps |
+| **Vue/Nuxt** | Nuxt 3 | Vue.js applications |
+
+### 📋 App Templates
+- **Mobile**: Todo, Fitness, Social, E-commerce, Weather
+- **Web SaaS**: Dashboard, CRM, Admin Panel, E-commerce
+- **Web API**: REST API, GraphQL, Webhook Service
 - **And more...**
 
 ### ⚙️ Full Automation
@@ -46,14 +52,12 @@ AI-powered platform to generate **iOS, Android, and React Native apps** from nat
 - **Fastlane** - Build & code signing
 - **App Store** - Upload & submit
 - **Play Store** - Upload & submit
-- **TestFlight** - Beta testing
-- **Internal Testing** - Google Play
+- **Vercel/Netlify** - Web deployment
 
 ### 🔍 Store Validation
 - **App Store Review** - Prevents rejections
 - **Play Store Review** - Policy compliance
-- **Privacy Checks** - Data handling
-- **Accessibility** - Store requirements
+- **Web Accessibility** - WCAG compliance
 
 ---
 
@@ -63,40 +67,32 @@ AI-powered platform to generate **iOS, Android, and React Native apps** from nat
 ┌─────────────────────────────────────────────────────────────────┐
 │  USER INPUT                                                     │
 │  "Create a fitness app with workouts, progress charts,
-│   and HealthKit integration"                                   │
+│   and a web dashboard for tracking"
 └─────────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────────┐
 │  🤖 AI GENERATES (All at once!)                                │
 └─────────────────────────────────────────────────────────────────┘
                               ↓
-    ┌──────────────┬──────────────┬──────────────┐
-    │              │              │              │
-    │   📱 iOS     │   🤖 Android  │   ⚛️ React   │
-    │  (SwiftUI)   │   (Kotlin)   │   Native     │
-    │              │              │              │
-    │  .xcodeproj  │  .gradle     │  Expo        │
-    └──────────────┴──────────────┴──────────────┘
+    ┌──────────────┬──────────────┬──────────────┬──────────────┐
+    │              │              │              │              │
+    │   📱 iOS     │   🤖 Android │   ⚛️ React  │   🌐 Web    │
+    │  (SwiftUI)   │   (Kotlin)  │   (Expo)    │  (Next.js)   │
+    │              │              │              │              │
+    └──────────────┴──────────────┴──────────────┴──────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────────┐
-│  📦 EXPORT - Download all at once!                             │
-│  - iOS Xcode Project (.zip)                                    │
-│  - Android Studio Project (.zip)                              │
-│  - React Native Expo Project (.zip)                           │
-└─────────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────────┐
-│  🚀 DEPLOY - Auto upload to stores!                            │
-│  - App Store + Play Store                                      │
-│  - TestFlight + Internal Testing                               │
+│  📦 EXPORT - Download all at once!                              │
+│  - iOS Xcode Project (.zip)                                     │
+│  - Android Studio Project (.zip)                                │
+│  - React Native Expo Project (.zip)                            │
+│  - Web Next.js Project (.zip)                                  │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 📖 Documentation
-
-### Quick Start
+## 📖 Quick Start
 
 ```bash
 # Clone
@@ -120,9 +116,9 @@ npm run dev
 NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 
-# AI Providers (choose at least oneROPIC_API_KEY=sk-ant-...
-OPENAI)
-ANTH_API_KEY=sk-...
+# AI Providers (choose at least one)
+ANTHROPIC_API_KEY=sk-ant-...
+OPENAI_API_KEY=sk-...
 GEMINI_API_KEY=AIza...
 MINIMAX_API_KEY=...
 ZAI_API_KEY=...
@@ -131,7 +127,9 @@ ZAI_API_KEY=...
 DEFAULT_AI_PROVIDER=claude
 ```
 
-### API Usage
+---
+
+## 💻 Usage
 
 ```typescript
 import { createCrossPlatformGenerator } from './lib/platforms/cross-platform-generator';
@@ -141,14 +139,19 @@ const generator = createCrossPlatformGenerator(
   process.env.ANTHROPIC_API_KEY!
 );
 
+// Generate for ALL platforms at once!
 const result = await generator.generate({
-  prompt: "Create a fitness tracking app",
-  platforms: ['ios', 'android', 'react-native']
+  prompt: "Create a fitness tracking app with web dashboard",
+  platforms: ['ios', 'android', 'react-native', 'web'],
+  settings: {
+    webStack: 'nextjs'  // Choose web stack
+  }
 });
 
-console.log(result.code.ios);   // SwiftUI code
-console.log(result.code.android); // Kotlin code
+console.log(result.code.ios);      // SwiftUI code
+console.log(result.code.android);  // Kotlin code
 console.log(result.code['react-native']); // React Native code
+console.log(result.code.web);     // Next.js code
 ```
 
 ---
@@ -157,30 +160,30 @@ console.log(result.code['react-native']); // React Native code
 
 ```
 src/
-├── types/              # TypeScript types
+├── types/                     # TypeScript types
 ├── lib/
-│   ├── ai/
-│   │   └── providers/  # AI providers (Claude, OpenAI, etc.)
+│   ├── ai/providers/          # AI providers
 │   ├── platforms/
-│   │   └── cross-platform-generator.ts
-│   ├── templates/      # App templates
-│   ├── validation/     # Store validation
-│   └── automation/     # CI/CD & upload
+│   │   ├── cross-platform-generator.ts
+│   │   └── web-generator.ts   # Web app generation
+│   ├── templates/            # App & Web templates
+│   ├── validation/           # Store validation
+│   └── automation/          # CI/CD & upload
 └── app/
-    └── api/           # API routes
+    └── api/                  # API routes
 ```
 
 ---
 
 ## 🤝 Contributing
 
-Contributions welcome! Please read our [contributing guidelines](CONTRIBUTING.md) first.
+Contributions welcome!
 
 ---
 
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE) for details.
+MIT License
 
 ---
 
