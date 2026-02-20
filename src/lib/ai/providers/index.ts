@@ -1,13 +1,15 @@
 /**
  * Cross-Platform AI Providers
  * All available AI providers for app generation
+ * 
+ * DEFAULT: MiniMax M2.5 (peak performance, 204k context)
  */
 
-export type AIProvider = 
-  | 'claude' 
-  | 'openai' 
-  | 'gemini' 
-  | 'minimax' 
+export type AIProvider =
+  | 'minimax'  // Default
+  | 'claude'
+  | 'openai'
+  | 'gemini'
   | 'zhipu';
 
 export interface AIProviderConfig {
@@ -30,10 +32,26 @@ export interface AIResponse {
 
 // All available AI providers
 export const AI_PROVIDERS = {
+  // Default - MiniMax M2.5
+  minimax: {
+    id: 'minimax',
+    name: 'MiniMax',
+    description: 'MiniMax M2.5 - Peak Performance AI (Default)',
+    models: [
+      'MiniMax-M2.5',           // Peak Performance (60 tps) - DEFAULT
+      'MiniMax-M2.5-highspeed', // Faster (100 tps)
+      'MiniMax-M2.1',           // Powerful Multi-Language
+      'MiniMax-M2.1-highspeed', // Faster
+      'MiniMax-M2'              // Agentic capabilities
+    ],
+    defaultModel: 'MiniMax-M2.5',
+    contextWindow: 204800,
+    apiUrl: 'https://api.minimax.chat/v1'
+  },
   claude: {
     id: 'claude',
     name: 'Claude',
-    description: 'Anthropic\'s Claude - Excellent for code generation',
+    description: "Anthropic's Claude - Excellent for code generation",
     models: ['claude-sonnet-4-5', 'claude-opus-4-6'],
     defaultModel: 'claude-sonnet-4-5'
   },
@@ -51,13 +69,6 @@ export const AI_PROVIDERS = {
     models: ['gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-pro'],
     defaultModel: 'gemini-2.0-flash'
   },
-  minimax: {
-    id: 'minimax',
-    name: 'MiniMax',
-    description: 'MiniMax AI - Fast and cost-effective',
-    models: ['abab6.5s', 'abab6.5g'],
-    defaultModel: 'abab6.5s'
-  },
   zhipu: {
     id: 'zhipu',
     name: 'Z.ai',
@@ -67,6 +78,9 @@ export const AI_PROVIDERS = {
   }
 } as const;
 
+// Default provider
+export const DEFAULT_PROVIDER: AIProvider = 'minimax';
+
 export type ProviderName = keyof typeof AI_PROVIDERS;
 
 // Get provider by name
@@ -74,17 +88,24 @@ export function getProvider(name: AIProvider): typeof AI_PROVIDERS[AIProvider] {
   return AI_PROVIDERS[name];
 }
 
+// Get default provider
+export function getDefaultProvider(): typeof AI_PROVIDERS['minimax'] {
+  return AI_PROVIDERS.minimax;
+}
+
 // Get all available models for all providers
-export function getAllModels(): Array<{ 
-  provider: string; 
+export function getAllModels(): Array<{
+  provider: string;
   name: string;
   models: string[];
   defaultModel: string;
+  isDefault?: boolean;
 }> {
   return Object.entries(AI_PROVIDERS).map(([key, config]) => ({
     provider: key,
     name: config.name,
     models: config.models,
-    defaultModel: config.defaultModel
+    defaultModel: config.defaultModel,
+    isDefault: key === 'minimax'
   }));
 }
