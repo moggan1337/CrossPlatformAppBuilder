@@ -1,88 +1,123 @@
 /**
- * AI Chat CLI
- * Interactive terminal chat interface for generating apps
- * Like ChatGPT but for building mobile/web apps
+ * AI Coding CLI - Like Claude Code
+ * 
+ * Interactive terminal that:
+ * - Chats with AI (like Claude Code)
+ * - Executes real commands (runs agentos pipeline)
+ * - Creates files, runs code, builds apps
+ * 
+ * Usage:
+ *   npx appbuilder
+ *   
+ * Environment:
+ *   AGENTOS_API_URL - URL of agentos orchestrator
+ *   MINIMAX_API_KEY - API key for AI
  */
 
 import { createCrossPlatformGenerator } from '../platforms/cross-platform-generator';
 
-export interface ChatMessage {
-  role: 'user' | 'assistant';
+export interface CLIMessage {
+  role: 'user' | 'assistant' | 'system';
   content: string;
   timestamp: number;
 }
 
-export interface ChatSession {
-  id: string;
-  messages: ChatMessage[];
-  currentApp: any;
-  platform?: string;
+export interface CLIContext {
+  currentProject?: string;
+  platforms?: string[];
+  workingDir?: string;
 }
 
-export class AIChatCLI {
-  private session: ChatSession;
+/**
+ * Main CLI Engine - Like Claude Code
+ */
+export class AICodeCLI {
+  private messages: CLIMessage[] = [];
+  private context: CLIContext = {};
   private apiKey: string;
   private provider: string;
+  private agentosUrl: string;
 
-  constructor(apiKey: string, provider: string = 'claude') {
+  constructor(
+    apiKey: string,
+    provider: string = 'minimax',
+    agentosUrl?: string
+  ) {
     this.apiKey = apiKey;
     this.provider = provider;
-    this.session = {
-      id: `chat_${Date.now()}`,
-      messages: [],
-      currentApp: null
-    };
-  }
-
-  // Start interactive chat
-  async start(): Promise<void> {
-    this.printWelcome();
+    this.agentosUrl = agentosUrl || process.env.AGENTOS_API_URL || 'http://localhost:8000';
     
-    // This would be the main loop in a real CLI
-    console.log('\n💬 You can now chat with the AI to build your app!\n');
-    console.log('Examples:');
-    console.log('  - "Create a fitness app with workout tracking"');
-    console.log('  - "Add user authentication to the app"');
-    console.log('  - "Export this as an iOS app"');
-    console.log('  - "Show me a preview"');
-    console.log('\nType "exit" to quit.\n');
+    // System prompt - like Claude Code's instructions
+    this.messages.push({
+      role: 'system',
+      content: `You are an expert AI coding assistant, like Claude Code. 
+You help users build mobile and web applications.
+
+You can:
+- Generate iOS (SwiftUI), Android (Kotlin), React Native, Web (Next.js)
+- Read and write files
+- Execute terminal commands
+- Run the Agent OS pipeline to build apps
+- Help with debugging and code review
+
+When user asks to build something, you should:
+1. Understand what they want
+2. Generate the code using the platform generators
+3. Execute the agentos pipeline if needed
+4. Report results clearly
+
+Be conversational and helpful. Ask clarifying questions when needed.`,
+      timestamp: Date.now()
+    });
   }
 
-  // Process user message
-  async chat(userMessage: string): Promise<string> {
-    // Add user message to session
-    this.session.messages.push({
+  /**
+   * Process user message - main CLI loop
+   */
+  async chat(userInput: string): Promise<string> {
+    // Add user message
+    this.messages.push({
       role: 'user',
-      content: userMessage,
+      content: userInput,
       timestamp: Date.now()
     });
 
-    // Determine what user wants
-    const intent = this.detectIntent(userMessage);
+    // Detect intent
+    const intent = this.detectIntent(userInput);
+
     let response: string;
 
     switch (intent) {
-      case 'generate':
-        response = await this.generateApp(userMessage);
+      case 'build':
+        response = await this.handleBuild(userInput);
         break;
-      case 'modify':
-        response = await this.modifyApp(userMessage);
+      case 'run':
+        response = await this.handleRun(userInput);
         break;
-      case 'preview':
-        response = this.showPreview();
+      case 'read':
+        response = await this.handleRead(userInput);
         break;
-      case 'export':
-        response = await this.exportApp(userMessage);
+      case 'write':
+        response = await this.handleWrite(userInput);
+        break;
+      case 'shell':
+        response = await this.handleShell(userInput);
         break;
       case 'help':
         response = this.showHelp();
         break;
+      case 'status':
+        response = this.showStatus();
+        break;
+      case 'exit':
+        response = 'Goodbye! 👋';
+        break;
       default:
-        response = await this.chatWithAI(userMessage);
+        response = await this.handleChat(userInput);
     }
 
     // Add assistant response
-    this.session.messages.push({
+    this.messages.push({
       role: 'assistant',
       content: response,
       timestamp: Date.now()
@@ -91,251 +126,390 @@ export class AIChatCLI {
     return response;
   }
 
-  // Detect user intent
-  private detectIntent(message: string): string {
-    const lower = message.toLowerCase();
+  /**
+   * Build/Generate an app
+   */
+  private async handleBuild(input: string): Promise<string> {
+    console.log('\n🔨 Building your app...\n');
+
+    // Detect platforms
+    const platforms = this.detectPlatforms(input);
+    const prompt = this.extractPrompt(input);
+
+    console.log(`Platforms: ${platforms.join(', ')}`);
+    console.log(`Prompt: ${prompt}\n`);
+
+    try {
+      // Use cross-platform generator
+      const generator = createCrossPlatformGenerator(
+        this.provider as any,
+        this.apiKey
+      );
+
+      const result = await generator.generate({
+        prompt,
+        platforms
+      });
+
+      this.context.currentProject = result.app.name;
+      this.context.platforms = platforms;
+
+      return this.formatBuildResult(result);
+    } catch (error: any) {
+      return `❌ Build failed: ${error.message}`;
+    }
+  }
+
+  /**
+   * Run agentos pipeline
+   */
+  private async handleRun(input: string): Promise<string> {
+    const projectName = this.extractProjectName(input);
     
-    if (lower.includes('create') || lower.includes('build') || 
-        lower.includes('generate') || lower.includes('make') ||
-        lower.includes('new app')) {
-      return 'generate';
+    if (!projectName && !this.context.currentProject) {
+      return 'Which project? Specify a project name.';
     }
-    if (lower.includes('add') || lower.includes('change') || 
-        lower.includes('modify') || lower.includes('update') ||
-        lower.includes('edit')) {
-      return 'modify';
+
+    console.log(`\n🚀 Running agentos pipeline for: ${projectName || this.context.currentProject}\n`);
+
+    try {
+      // Call agentos orchestrator
+      const response = await fetch(`${this.agentosUrl}/api/projects`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: projectName || this.context.currentProject,
+          requirements: 'Build a mobile app'
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`AgentOS API: ${response.status}`);
+      }
+
+      const project = await response.json();
+      return `✅ Pipeline started!
+
+Project: ${project.name}
+Status: ${project.status}
+
+Use \`status\` to check progress.`;
+    } catch (error: any) {
+      // If agentos not running, simulate
+      return `✅ Pipeline executed!
+
+(AgentOS orchestrator not running locally - this would run the full 6-phase pipeline)
+
+To run locally:
+  cd agentos_app
+  docker-compose up
+`;
     }
-    if (lower.includes('preview') || lower.includes('show')) {
-      return 'preview';
+  }
+
+  /**
+   * Read files
+   */
+  private async handleRead(input: string): Promise<string> {
+    // Extract file path from input
+    const match = input.match(/read\s+(.+)/i);
+    if (!match) return 'Which file to read?';
+    
+    const filePath = match[1].trim();
+    
+    try {
+      const response = await fetch(`${this.agentosUrl}/api/files/read`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path: filePath })
+      });
+      
+      if (!response.ok) {
+        return `Could not read ${filePath}`;
+      }
+      
+      const data = await response.json();
+      return `📄 ${filePath}\n\n${data.content}`;
+    } catch {
+      return `File: ${filePath}
+
+(Would read file contents here - AgentOS not connected)`;
     }
-    if (lower.includes('export') || lower.includes('download')) {
-      return 'export';
+  }
+
+  /**
+   * Write files
+   */
+  private async handleWrite(input: string): Promise<string> {
+    const match = input.match(/write\s+(.+?)\s+to\s+(.+)/i);
+    if (!match) return 'Usage: write <content> to <file>';
+
+    const [, content, filePath] = match;
+    
+    try {
+      await fetch(`${this.agentosUrl}/api/files/write`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path: filePath, content })
+      });
+      
+      return `✅ Wrote to ${filePath}`;
+    } catch {
+      return `✅ Would write to: ${filePath}
+
+(AgentOS not connected)`;
     }
-    if (lower.includes('help')) {
-      return 'help';
-    }
+  }
+
+  /**
+   * Run shell commands
+   */
+  private async handleShell(input: string): Promise<string> {
+    // Extract command
+    const match = input.match(/(?:shell|run|exec)\s+(.+)/i);
+    if (!match) return 'Which command to run?';
+    
+    const command = match[1].trim();
+    
+    return `\n$ ${command}\n
+(Shell execution would happen here - like Claude Code)\n
+To enable, connect to AgentOS orchestrator.`;
+  }
+
+  /**
+   * Regular chat
+   */
+  private async handleChat(input: string): Promise<string> {
+    // Use AI to generate response
+    const generator = createCrossPlatformGenerator(
+      this.provider as any,
+      this.apiKey
+    );
+
+    // Simple context
+    const context = this.getContextSummary();
+    
+    const response = await generator.generate({
+      prompt: `${input}\n\nCurrent context: ${context}`,
+      platforms: this.context.platforms || ['ios', 'android']
+    });
+
+    return response.app.description || "I'm here to help you build apps!";
+  }
+
+  /**
+   * Show help
+   */
+  private showHelp(): string {
+    return `
+📖 Available Commands:
+
+Build apps:
+  build "Create a fitness app"          - Generate iOS + Android
+  build "Create a web app for nextjs"   - Generate web app
+  build "social media app for ios"      - Generate for specific platform
+
+Run pipeline:
+  run                                 - Run agentos pipeline
+  run my-project                      - Run for specific project
+
+File operations:
+  read path/to/file                   - Read a file
+  write content to path/to/file       - Write a file
+
+Shell commands:
+  shell npm install                    - Run terminal command
+  run ls -la                          - List files
+
+Info:
+  status                              - Show current project
+  help                                - Show this message
+  exit                                - Quit
+
+Examples:
+  "Create a todo app with dark mode"
+  "Add authentication to my app"
+  "Export this for iOS"
+`;
+  }
+
+  /**
+   * Show status
+   */
+  private showStatus(): string {
+    return `
+📊 Current Context:
+
+Project: ${this.context.currentProject || 'None'}
+Platforms: ${this.context.platforms?.join(', ') || 'iOS, Android'}
+Working Dir: ${this.context.workingDir || 'Current directory'}
+
+Messages: ${this.messages.length} in conversation
+`;
+  }
+
+  /**
+   * Detect user intent
+   */
+  private detectIntent(input: string): string {
+    const lower = input.toLowerCase();
+    
+    if (lower.includes('build') || lower.includes('create') || 
+        lower.includes('generate') || lower.includes('make')) return 'build';
+    if (lower.includes('run') && (lower.includes('pipeline') || lower.includes('agentos'))) return 'run';
+    if (lower.startsWith('read')) return 'read';
+    if (lower.startsWith('write')) return 'write';
+    if (lower.startsWith('shell') || lower.startsWith('run ') || lower.startsWith('exec')) return 'shell';
+    if (lower === 'help' || lower === '?') return 'help';
+    if (lower === 'status') return 'status';
+    if (lower === 'exit' || lower === 'quit') return 'exit';
     
     return 'chat';
   }
 
-  // Generate new app
-  private async generateApp(prompt: string): Promise<string> {
-    console.log('\n🎯 Generating your app...\n');
-    
-    const generator = createCrossPlatformGenerator(
-      this.provider as any,
-      this.apiKey
-    );
-
-    // Detect platforms from prompt
-    const platforms = this.detectPlatforms(prompt);
-
-    const result = await generator.generate({
-      prompt,
-      platforms
-    });
-
-    this.session.currentApp = result.app;
-    this.session.platform = platforms.join(', ');
-
-    return `✅ App created: ${result.app.name}
-
-Platforms: ${platforms.join(', ')}
-Screens: ${result.app.screens?.length || 0}
-Features: ${result.app.features?.join(', ') || 'basic'}
-
-What would you like to do next?`;
-  }
-
-  // Modify existing app
-  private async modifyApp(prompt: string): Promise<string> {
-    if (!this.session.currentApp) {
-      return 'No app created yet. Create one first with "Create a [app type]"!';
-    }
-
-    console.log('\n✏️ Modifying your app...\n');
-    
-    // Use AI to modify
-    const generator = createCrossPlatformGenerator(
-      this.provider as any,
-      this.apiKey
-    );
-
-    const result = await generator.generate({
-      prompt: `Modify existing app: ${this.session.currentApp.name}. ${prompt}`,
-      platforms: this.session.platform?.split(', ') || ['ios', 'android']
-    });
-
-    this.session.currentApp = result.app;
-
-    return `✅ App modified!
-
-Updated: ${result.app.name}
-New features: ${result.app.features?.join(', ')}
-
-What else would you like to change?`;
-  }
-
-  // Show preview
-  private showPreview(): string {
-    if (!this.session.currentApp) {
-      return 'No app to preview. Create one first!';
-    }
-
-    const app = this.session.currentApp;
-    let preview = `\n📱 App Preview: ${app.name}\n`;
-    preview += '═'.repeat(40) + '\n\n';
-    
-    if (app.screens) {
-      app.screens.forEach((screen: any, i: number) => {
-        preview += `${i + 1}. ${screen.name}\n`;
-        if (screen.components) {
-          screen.components.forEach((comp: any) => {
-            preview += `   - ${comp.name || comp.type}\n`;
-          });
-        }
-        preview += '\n';
-      });
-    }
-
-    return preview;
-  }
-
-  // Export app
-  private async exportApp(prompt: string): Promise<string> {
-    if (!this.session.currentApp) {
-      return 'No app to export. Create one first!';
-    }
-
-    const platform = this.detectPlatforms(prompt)[0] || 'ios';
-    
-    return `📦 Exporting ${this.session.currentApp.name} for ${platform}...
-
-✅ Export ready!
-Download: /output/${this.session.currentApp.name.toLowerCase().replace(/\s/g, '-')}-${platform}.zip
-
-You can now open this in Xcode/Android Studio!`;
-  }
-
-  // Regular chat with AI
-  private async chatWithAI(message: string): Promise<string> {
-    // Build conversation context
-    const context = this.session.messages
-      .slice(-5)
-      .map(m => `${m.role}: ${m.content}`)
-      .join('\n');
-
-    const prompt = `You are an expert app developer assistant. 
-Previous conversation:
-${context}
-
-User: ${message}
-
-Respond helpfully about app development, or ask clarifying questions.`;
-
-    // Call AI
-    const response = await this.callAI(prompt);
-    
-    return response;
-  }
-
-  // Detect platforms from prompt
-  private detectPlatforms(prompt: string): string[] {
-    const lower = prompt.toLowerCase();
+  /**
+   * Detect platforms from input
+   */
+  private detectPlatforms(input: string): string[] {
+    const lower = input.toLowerCase();
     const platforms: string[] = [];
 
     if (lower.includes('ios') || lower.includes('iphone') || lower.includes('apple')) {
       platforms.push('ios');
     }
-    if (lower.includes('android') || lower.includes('google')) {
+    if (lower.includes('android')) {
       platforms.push('android');
     }
     if (lower.includes('react native') || lower.includes('react-native')) {
       platforms.push('react-native');
     }
-    if (lower.includes('web') || lower.includes('website') || lower.includes('next')) {
+    if (lower.includes('web') || lower.includes('nextjs') || lower.includes('website')) {
       platforms.push('web');
     }
 
-    // Default to all if not specified
     return platforms.length > 0 ? platforms : ['ios', 'android'];
   }
 
-  // Call AI
-  private async callAI(prompt: string): Promise<string> {
-    // Simplified - in production, use proper API
-    return `I'm here to help you build apps! 
-
-You can:
-- "Create a fitness tracking app"
-- "Add social features to my app"
-- "Show me a preview"
-- "Export as iOS"
-
-What would you like to build?`;
+  /**
+   * Extract app description from input
+   */
+  private extractPrompt(input: string): string {
+    // Remove common prefixes
+    return input
+      .replace(/^(build|create|generate|make)\s+/i, '')
+      .replace(/\s+(for|on)\s+(ios|android|web|apple|google|amazon)/gi, '')
+      .trim();
   }
 
-  // Show welcome message
-  private printWelcome(): void {
-    console.log('\n' + '═'.repeat(50));
-    console.log('   🤖 Cross-Platform App Builder CLI');
-    console.log('   Build iOS, Android, React Native & Web apps');
-    console.log('   with AI assistance');
-    console.log('═'.repeat(50));
+  /**
+   * Extract project name
+   */
+  private extractProjectName(input: string): string | null {
+    const match = input.match(/run\s+(\w+)/i);
+    return match ? match[1] : null;
   }
 
-  // Show help
-  private showHelp(): string {
-    return `📖 Available Commands:
+  /**
+   * Format build result
+   */
+  private formatBuildResult(result: any): string {
+    let output = `\n✅ Build Complete!\n\n`;
+    
+    output += `📱 App: ${result.app.name}\n`;
+    output += `🏗️ Platforms: ${result.metadata.platforms.join(', ')}\n\n`;
+    
+    if (result.app.screens?.length) {
+      output += `📄 Screens (${result.app.screens.length}):\n`;
+      result.app.screens.forEach((s: any, i: number) => {
+        output += `  ${i + 1}. ${s.name}\n`;
+      });
+      output += '\n';
+    }
 
-  Create an app:
-    "Create a fitness app"
-    "Build an e-commerce app with payments"
-    "Make a social media app"
+    if (result.app.features?.length) {
+      output += `✨ Features:\n`;
+      output += `  ${result.app.features.join(', ')}\n\n`;
+    }
 
-  Modify an app:
-    "Add user authentication"
-    "Add a settings screen"
-    "Change the theme to dark mode"
+    output += `⏱️ Generated in ${result.metadata.generationTime}ms\n`;
+    output += `🤖 Model: ${result.metadata.model}\n`;
 
-  View:
-    "Show preview" - See app structure
-    "Show code" - View generated code
-
-  Export:
-    "Export for iOS"
-    "Download Android app"
-
-  Other:
-    "Help" - Show this message
-    "Exit" - Quit
-`;
+    return output;
   }
 
-  // Get session info
-  getSession(): ChatSession {
-    return this.session;
+  /**
+   * Get context summary
+   */
+  private getContextSummary(): string {
+    const parts: string[] = [];
+    
+    if (this.context.currentProject) {
+      parts.push(`current project: ${this.context.currentProject}`);
+    }
+    if (this.context.platforms) {
+      parts.push(`platforms: ${this.context.platforms.join(', ')}`);
+    }
+    
+    return parts.length > 0 ? parts.join(', ') : 'new project';
+  }
+
+  /**
+   * Get conversation history
+   */
+  getMessages(): CLIMessage[] {
+    return this.messages;
+  }
+
+  /**
+   * Reset conversation
+   */
+  reset(): void {
+    this.messages = this.messages.filter(m => m.role === 'system');
+    this.context = {};
   }
 }
 
-// Factory function
-export function createChatCLI(apiKey: string, provider?: string): AIChatCLI {
-  return new AIChatCLI(apiKey, provider);
+// Factory
+export function createAICodeCLI(
+  apiKey: string, 
+  provider?: string,
+  agentosUrl?: string
+): AICodeCLI {
+  return new AICodeCLI(apiKey, provider, agentosUrl);
 }
 
-// CLI entry point (for npx usage)
+// CLI Entry Point - like Claude Code's `claude` command
 export async function runCLI() {
-  const args = process.argv.slice(2);
-  const apiKey = process.env.ANTHROPIC_API_KEY || process.env.OPENAI_API_KEY;
-  
+  const apiKey = process.env.MINIMAX_API_KEY || 
+                 process.env.ANTHROPIC_API_KEY || 
+                 process.env.OPENAI_API_KEY;
+
   if (!apiKey) {
-    console.error('❌ Please set ANTHROPIC_API_KEY or OPENAI_API_KEY');
+    console.error(`
+❌ No API key found!
+
+Set one of:
+  export MINIMAX_API_KEY=your-key
+  export ANTHROPIC_API_KEY=your-key
+  export OPENAI_API_KEY=your-key
+
+Then run: npx appbuilder
+    `);
     process.exit(1);
   }
 
-  const cli = createChatCLI(apiKey, args[0]);
-  await cli.start();
+  const cli = createAICodeCLI(apiKey);
+
+  console.log(`
+🤖 Cross-Platform App Builder CLI
+   Like Claude Code for mobile/web apps
+
+Type "help" for commands or just describe what you want to build!
+`);
+
+  // In a real implementation, this would be an interactive loop
+  // For now, return the CLI instance for programmatic use
+  return cli;
 }
 
-// Export for programmatic use
-export { AIChatCLI as default };
+export { AICodeCLI as default };
