@@ -4,7 +4,6 @@
   <img src="https://img.shields.io/badge/React_Native-61DAFB?style=for-the-badge&logo=react-native&logoColor=white" alt="React Native">
   <img src="https://img.shields.io/badge/Web-FF6C37?style=for-the-badge&logo=webpack&logoColor=white" alt="Web">
   <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript">
-  <img src="https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js">
   <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License">
 </div>
 
@@ -33,19 +32,18 @@ AI-powered platform to generate **iOS, Android, React Native, and Web apps** fro
 | **React Native** | Expo | Cross-platform mobile apps |
 | **Web** | Next.js / FastAPI / Vue | Full-stack web apps |
 
-### 🌐 Web Technology Stacks
-| Stack | Framework | Description |
-|-------|-----------|-------------|
-| **Next.js** | Next.js 14 + Tailwind | Full-stack React apps |
-| **FastAPI** | FastAPI + Python | REST APIs |
-| **React + Express** | MERN Stack | MongoDB-based apps |
-| **Vue/Nuxt** | Nuxt 3 | Vue.js applications |
+### 💬 Two Interfaces
+
+| Interface | Description | Like |
+|-----------|-------------|------|
+| **Chat UI** | Web-based chat for building apps | ChatGPT |
+| **CLI** | Terminal interface | Claude Code |
 
 ### 📋 App Templates
 - **Mobile**: Todo, Fitness, Social, E-commerce, Weather
 - **Web SaaS**: Dashboard, CRM, Admin Panel, E-commerce
 - **Web API**: REST API, GraphQL, Webhook Service
-- **And more...**
+- **And more...** (40+ templates)
 
 ### ⚙️ Full Automation
 - **GitHub Actions** - CI/CD for all platforms
@@ -58,6 +56,18 @@ AI-powered platform to generate **iOS, Android, React Native, and Web apps** fro
 - **App Store Review** - Prevents rejections
 - **Play Store Review** - Policy compliance
 - **Web Accessibility** - WCAG compliance
+
+### 🚀 10 Enhancements
+1. **Code Review AI** - Auto-review code for bugs & security
+2. **Cloud DB** - Auto-provision Supabase, Firebase, PlanetScale, Neon
+3. **Visual Preview** - See app screens before export
+4. **API Extensions** - Webhooks & REST endpoints
+5. **Analytics Dashboard** - Track apps, usage, revenue
+6. **Payment Integration** - Stripe/PayPal (Free/Pro/Team plans)
+7. **Custom Domain** - Deploy to your domain + SSL
+8. **Mobile SDK** - API SDK for mobile apps
+9. **Dark Mode UI** - Light/Dark/System theme
+10. **CLI + Chat UI** - Like Claude Code & ChatGPT
 
 ---
 
@@ -89,6 +99,55 @@ AI-powered platform to generate **iOS, Android, React Native, and Web apps** fro
 │  - Web Next.js Project (.zip)                                  │
 └─────────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## 💬 Chat Interface (Like ChatGPT)
+
+```typescript
+import { createChatAPI } from './lib/enhancements/chat-api';
+
+const chat = createChatAPI(apiKey);
+
+// Send message and get app generated!
+const response = await chat.sendMessage({
+  message: "Create a fitness tracking app"
+});
+
+console.log(response.message.content);
+// 🎉 App Created: Fitness Tracker
+// Platforms: iOS, Android
+// Screens: Home, Workouts, Progress, Profile
+```
+
+---
+
+## 🖥️ CLI Interface (Like Claude Code)
+
+```bash
+$ npx appbuilder
+
+You: Create a fitness app
+
+🤖: 🔨 Building...
+
+✅ Done!
+📱 App: Fitness Tracker
+Platforms: iOS, Android
+
+You: Add social sharing
+
+🤖: ✏️ Modifying...
+
+✅ Done!
+```
+
+### CLI Commands
+- `build "app idea"` - Generate apps
+- `run` - Run agentos pipeline
+- `read file` - Read files
+- `shell cmd` - Run terminal commands
+- `help` - Show help
 
 ---
 
@@ -162,13 +221,25 @@ console.log(result.code.web);     // Next.js code
 src/
 ├── types/                     # TypeScript types
 ├── lib/
-│   ├── ai/providers/          # AI providers
+│   ├── ai/providers/          # AI providers (5)
 │   ├── platforms/
 │   │   ├── cross-platform-generator.ts
 │   │   └── web-generator.ts   # Web app generation
-│   ├── templates/            # App & Web templates
+│   ├── templates/            # 40+ templates
 │   ├── validation/           # Store validation
-│   └── automation/          # CI/CD & upload
+│   ├── automation/          # CI/CD & upload
+│   └── enhancements/        # 10 enhancements
+│       ├── chat-api.ts      # Chat UI
+│       ├── cli.ts           # CLI tool
+│       ├── code-review.ts  # Code review
+│       ├── cloud-db.ts     # Database
+│       ├── visual-preview.ts
+│       ├── api-extensions.ts
+│       ├── analytics.ts
+│       ├── payments.ts
+│       ├── custom-domain.ts
+│       ├── mobile-sdk.ts
+│       └── dark-mode.ts
 └── app/
     └── api/                  # API routes
 ```
